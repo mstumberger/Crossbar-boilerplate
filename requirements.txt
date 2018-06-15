@@ -1,0 +1,5 @@
+crossbar==18.4.1
+django==1.11
+pytz==2018.4
+psycopg2-binary
+djangorestframework==3.5.3

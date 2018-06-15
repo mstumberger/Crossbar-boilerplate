@@ -1,0 +1,175 @@
+{
+    "version": 2,
+    "workers": [
+        {
+            "type": "router",
+              "options": {
+                  "cpu_affinity": [ 0, 1 ],
+                  "pythonpath": [".."]
+             },
+            "realms": [
+                {
+                    "name": "realm1",
+                    "roles": [
+                        {
+                            "name": "authenticator",
+                            "permissions": [
+                                {
+                                    "uri": "com.example.authenticate",
+                                    "match": "exact",
+                                    "allow": {
+                                        "call": true,
+                                        "register": true,
+                                        "publish": false,
+                                        "subscribe": false
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                },
+                                {
+                                    "uri": "com.example.database.get_user",
+                                    "match": "exact",
+                                    "allow": {
+                                        "call": true,
+                                        "register": false,
+                                        "publish": false,
+                                        "subscribe": false
+                                    },
+                                    "disclose": {
+                                        "caller": false,
+                                        "publisher": false
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        },
+                        {
+                            "name": "user",
+                            "permissions": [
+                                {
+                                    "uri": "*",
+                                    "allow": {
+                                        "call": true,
+                                        "register": true,
+                                        "publish": true,
+                                        "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": true,
+                                        "publisher": true
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        },
+                        {
+                            "name": "admin",
+                            "permissions": [
+                                {
+                                    "uri": "*",
+                                    "allow": {
+                                        "call": true,
+                                        "register": true,
+                                        "publish": true,
+                                        "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": true,
+                                        "publisher": true
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        },
+                        {
+                            "name": "service",
+                            "permissions": [
+                                {
+                                    "uri": "*",
+                                    "allow": {
+                                        "call": true,
+                                        "register": true,
+                                        "publish": true,
+                                        "subscribe": true
+                                    },
+                                    "disclose": {
+                                        "caller": true,
+                                        "publisher": true
+                                    },
+                                    "cache": true
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ],
+            "transports": [
+                {
+                    "type": "web",
+                    "endpoint": {
+                        "type": "tcp",
+                        "port": 8080
+                    },
+                    "paths": {
+                        "admin": {
+                           "type": "wsgi",
+                           "module": "models.wsgi",
+                           "object": "application"
+                        },
+                        "static": {
+                         "type": "static",
+                         "directory": "../static/"
+                        },
+                        "ws": {
+                            "type": "websocket",
+                            "options": {
+                                "enable_webstatus": false,
+                                "fail_by_drop": true,
+                                "open_handshake_timeout": 2500,
+                                "close_handshake_timeout": 1000,
+                                "auto_ping_interval": 4000,
+                                "auto_ping_timeout": 8000,
+                                "auto_ping_size": 4
+                          },
+                            "auth": {
+                              "wampcra": {
+                                "type": "dynamic",
+                                "authenticator": "com.example.authenticate"
+                                }
+                            }
+                        },
+                        "meta": {
+                            "type": "static",
+                            "directory": "../web"
+                        },
+                        "caller": {
+                            "type": "caller",
+                            "realm": "realm1",
+                            "role": "anonymous",
+                            "options": {
+                                "debug": true
+                            }
+                        }
+                    }
+                }
+            ],
+            "components": [
+                {
+                    "type": "class",
+                    "classname": "workers.Authenticator.Authenticator",
+                    "realm": "realm1",
+                    "role": "authenticator"
+                },
+                {
+                    "type": "class",
+                    "classname": "workers.Backend.Backend",
+                    "realm": "realm1",
+                    "role": "service"
+                }
+            ]
+        }
+    ]
+}

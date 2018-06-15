@@ -1,0 +1,6 @@
+# Don't check auto-generated stuff into git
+*.pyc
+.idea
+.crossbar/node.pid
+.crossbar/key.priv
+.crossbar/key.pub
