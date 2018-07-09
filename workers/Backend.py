@@ -9,6 +9,7 @@ from autobahn.wamp.types import SubscribeOptions, RegisterOptions
 from autobahn.wamp.auth import derive_key, generate_wcs
 from twisted.internet.defer import inlineCallbacks
 from django.db.utils import IntegrityError
+from autobahn.twisted.util import sleep
 from django.conf import settings
 from models.User.models import *
 
@@ -16,6 +17,7 @@ from models.User.models import *
 class Backend(ApplicationSession):
     REGISTER_OPTIONS = RegisterOptions(details_arg='details')
     SUBSCRIBE_OPTIONS = SubscribeOptions(details_arg='details')
+    counter = 0
 
     @inlineCallbacks
     def onJoin(self, details=None):
@@ -28,6 +30,22 @@ class Backend(ApplicationSession):
         yield self.register(self.create_user, 'com.example.database.create_user', options=self.REGISTER_OPTIONS)
         yield self.register(self.update_settings, 'com.example.database.update_settings',
                             options=self.REGISTER_OPTIONS)
+        yield self.register(self.ping, 'com.example.ping',
+                            options=self.REGISTER_OPTIONS)
+
+        while True:
+            ## PUBLISH an event
+            ##
+            yield self.publish(u'com.example.oncounter', self.counter)
+            self.log.info("published to 'oncounter' with counter {counter}",
+                          counter=self.counter)
+            self.counter += 1
+
+            yield sleep(1)
+
+    @staticmethod
+    def ping(details=None):
+        return "pong"
 
     @staticmethod
     def get_user(username, details=None):
